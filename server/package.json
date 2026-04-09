@@ -17,13 +17,14 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "db:schema": "psql -d greeting -f server/greeting.sql",
-    "db:seed": "node db/seed.js"
+    "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.20.0"
   },
   "devDependencies": {
