@@ -1,0 +1,14 @@
+{
+  "name": "capstone-sso",
+  "private": true,
+  "scripts": {
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "client:preview": "npm --prefix client run preview"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.1"
+  }
+}

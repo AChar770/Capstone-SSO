@@ -1,0 +1,32 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "capstone",
+  "main": "index.js",
+  "type": "module",
+  "homepage": "https://github.com/AChar770/Capstone-SSO#readme",
+  "bugs": {
+    "url": "https://github.com/AChar770/Capstone-SSO/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AChar770/Capstone-SSO.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "db:schema": "psql -d greeting -f server/greeting.sql",
+    "db:seed": "node db/seed.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

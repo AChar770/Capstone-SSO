@@ -1,0 +1,76 @@
+9. Build create event route
+   create POST /api/events
+   save event to database
+   protect route
+10. Build dashboard page
+    fetch user events
+    display event cards
+    link to event details
+11. Build create event page
+    event form
+    title, date, budget, description
+    submit to backend
+12. Build participant routes
+    add participant
+    get participants
+    delete participant
+13. Build participant management UI
+    add participant form
+    show participant list
+    delete participant button
+14. Build exclusion routes
+    add exclusion
+    get exclusions
+    delete exclusion
+15. Build exclusions UI
+    select two participants
+    save exclusion
+    show exclusions list
+16. Build matching algorithm
+    prevent self-match
+    respect exclusions
+    ensure one giver and one recipient each
+17. Build generate assignments route
+    fetch participants and exclusions
+    run match logic
+    save assignments
+18. Build event details page
+    show event info
+    show participants
+    show exclusions
+    generate matches button
+19. Build private assignment route and page
+    get current user’s assignment
+    display assigned recipient
+    keep results private
+20. Build wishlist CRUD
+    add wishlist item
+    get wishlist items
+    edit wishlist item
+    delete wishlist item
+21. Build wishlist page
+    item name
+    notes
+    store name
+    product URL
+    optional price
+    render saved items
+22. Add clickable retailer links
+    open product links in new tab
+    show store name on card
+23. Protect frontend routes
+    dashboard
+    event page
+    wishlist page
+    assignment page
+24. Basic styling and responsiveness
+    navbar
+    forms
+    dashboard cards
+    event page
+    wishlist page
+25. Testing and deployment
+    test routes in Postman
+    test full user flow
+    fix major bugs
+    deploy app
