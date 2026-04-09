@@ -9,10 +9,12 @@ const router = express.Router();
 
 router.post("/register", async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body || {};
 
     if (!username || !email || !password) {
-      return res.status(400).json({ error: "Username, email, and password required" });
+      return res
+        .status(400)
+        .json({ error: "Username, email, and password required" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -20,7 +22,7 @@ router.post("/register", async (req, res, next) => {
       `INSERT INTO users (username, email, password)
        VALUES ($1, $2, $3)
        RETURNING id, username, email, created_at;`,
-      [username, email, hashedPassword]
+      [username, email, hashedPassword],
     );
 
     const user = result.rows[0];
@@ -38,13 +40,15 @@ router.post("/register", async (req, res, next) => {
 
 router.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }
 
-    const result = await db.query("SELECT * FROM users WHERE email = $1;", [email]);
+    const result = await db.query("SELECT * FROM users WHERE email = $1;", [
+      email,
+    ]);
     const user = result.rows[0];
 
     if (!user) {
@@ -65,8 +69,8 @@ router.post("/login", async (req, res, next) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        created_at: user.created_at
-      }
+        created_at: user.created_at,
+      },
     });
   } catch (error) {
     next(error);
