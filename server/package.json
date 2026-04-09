@@ -17,7 +17,7 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "db:schema": "psql \"$DATABASE_URL\" -f db/schema.sql"
+    "db:schema": "node db/init.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
