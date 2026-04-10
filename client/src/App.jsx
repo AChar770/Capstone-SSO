@@ -1,139 +1,243 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const TOKEN_KEY = 'secret-santa-token'
+
+const emptyRegisterForm = {
+  username: '',
+  email: '',
+  password: '',
+}
+
+const emptyLoginForm = {
+  email: '',
+  password: '',
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [greeting, setGreeting] = useState('Loading ...')
+  const [registerForm, setRegisterForm] = useState(emptyRegisterForm)
+  const [loginForm, setLoginForm] = useState(emptyLoginForm)
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || '')
+  const [user, setUser] = useState(null)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    async function getGreeting() {
+    async function fetchCurrentUser() {
+      if (!token) {
+        setUser(null)
+        return
+      }
+
       try {
-        const response = await fetch(`${API_BASE_URL}/greet`)
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
         const data = await response.json()
-        setGreeting(data.greeting)
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Could not load user')
+        }
+
+        setUser(data)
       } catch (error) {
         console.log(error)
-        setGreeting('Could not reach the backend.')
+        setError(error.message)
+        setUser(null)
+        setToken('')
+        localStorage.removeItem(TOKEN_KEY)
       }
     }
 
-    getGreeting()
-  }, [])
+    fetchCurrentUser()
+  }, [token])
+
+  function handleRegisterChange(event) {
+    setRegisterForm({
+      ...registerForm,
+      [event.target.name]: event.target.value,
+    })
+  }
+
+  function handleLoginChange(event) {
+    setLoginForm({
+      ...loginForm,
+      [event.target.name]: event.target.value,
+    })
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registerForm),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not register user')
+      }
+
+      setToken(data.token)
+      localStorage.setItem(TOKEN_KEY, data.token)
+      setUser(data.user)
+      setRegisterForm(emptyRegisterForm)
+      setMessage('Registration successful.')
+    } catch (error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginForm),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not log in user')
+      }
+
+      setToken(data.token)
+      localStorage.setItem(TOKEN_KEY, data.token)
+      setUser(data.user)
+      setLoginForm(emptyLoginForm)
+      setMessage('Login successful.')
+    } catch (error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  function handleLogout() {
+    setToken('')
+    setUser(null)
+    setMessage('Logged out.')
+    setError('')
+    localStorage.removeItem(TOKEN_KEY)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-          <p>{greeting}</p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+    <main className="auth-page">
+      <section className="auth-hero">
+        <p className="eyebrow">Secret Santa Organizer</p>
+        <h1>Build the auth flow for your MVP</h1>
+        <p className="intro">
+          This page lets you register, log in, save your token, and verify that
+          your frontend can talk to your backend.
+        </p>
       </section>
 
-      <div className="ticks"></div>
+      {message ? <p className="message success">{message}</p> : null}
+      {error ? <p className="message error">{error}</p> : null}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="auth-layout">
+        <article className="auth-card">
+          <h2>Register</h2>
+          <form className="auth-form" onSubmit={handleRegister}>
+            <label>
+              Username
+              <input
+                name="username"
+                value={registerForm.username}
+                onChange={handleRegisterChange}
+                type="text"
+                required
+              />
+            </label>
+
+            <label>
+              Email
+              <input
+                name="email"
+                value={registerForm.email}
+                onChange={handleRegisterChange}
+                type="email"
+                required
+              />
+            </label>
+
+            <label>
+              Password
+              <input
+                name="password"
+                value={registerForm.password}
+                onChange={handleRegisterChange}
+                type="password"
+                required
+              />
+            </label>
+
+            <button type="submit">Create account</button>
+          </form>
+        </article>
+
+        <article className="auth-card">
+          <h2>Login</h2>
+          <form className="auth-form" onSubmit={handleLogin}>
+            <label>
+              Email
+              <input
+                name="email"
+                value={loginForm.email}
+                onChange={handleLoginChange}
+                type="email"
+                required
+              />
+            </label>
+
+            <label>
+              Password
+              <input
+                name="password"
+                value={loginForm.password}
+                onChange={handleLoginChange}
+                type="password"
+                required
+              />
+            </label>
+
+            <button type="submit">Log in</button>
+          </form>
+        </article>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <section className="auth-card session-card">
+        <h2>Session</h2>
+        {user ? (
+          <>
+            <p>You are logged in as <strong>{user.username}</strong>.</p>
+            <p>Email: {user.email}</p>
+            <button onClick={handleLogout} type="button">Log out</button>
+          </>
+        ) : (
+          <p>No user is currently logged in.</p>
+        )}
+      </section>
+    </main>
   )
 }
 
