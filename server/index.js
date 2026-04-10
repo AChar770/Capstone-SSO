@@ -18,8 +18,6 @@ app.get("/", (req, res) => {
   res.send("Secret Santa Organizer API");
 });
 
-app.get("/greet", helloWorld);
-app.get("/seed", seed);
 app.use("/api/auth", authRouter);
 
 async function seed(req, res, next) {
