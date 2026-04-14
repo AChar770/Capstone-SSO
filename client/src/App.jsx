@@ -1,33 +1,34 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-const TOKEN_KEY = 'secret-santa-token'
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const TOKEN_KEY = "secret-santa-token";
 
 const emptyRegisterForm = {
-  username: '',
-  email: '',
-  password: '',
-}
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+};
 
 const emptyLoginForm = {
-  email: '',
-  password: '',
-}
+  username: "",
+  password: "",
+};
 
 function App() {
-  const [registerForm, setRegisterForm] = useState(emptyRegisterForm)
-  const [loginForm, setLoginForm] = useState(emptyLoginForm)
-  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || '')
-  const [user, setUser] = useState(null)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
+  const [loginForm, setLoginForm] = useState(emptyLoginForm);
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || "");
+  const [user, setUser] = useState(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchCurrentUser() {
       if (!token) {
-        setUser(null)
-        return
+        setUser(null);
+        return;
       }
 
       try {
@@ -35,120 +36,117 @@ function App() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        })
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Could not load user')
+          throw new Error(data.error || "Could not load user");
         }
 
-        setUser(data)
+        setUser(data);
       } catch (error) {
-        console.log(error)
-        setError(error.message)
-        setUser(null)
-        setToken('')
-        localStorage.removeItem(TOKEN_KEY)
+        console.log(error);
+        setError(error.message);
+        setUser(null);
+        setToken("");
+        localStorage.removeItem(TOKEN_KEY);
       }
     }
 
-    fetchCurrentUser()
-  }, [token])
+    fetchCurrentUser();
+  }, [token]);
 
   function handleRegisterChange(event) {
     setRegisterForm({
       ...registerForm,
       [event.target.name]: event.target.value,
-    })
+    });
   }
 
   function handleLoginChange(event) {
     setLoginForm({
       ...loginForm,
       [event.target.name]: event.target.value,
-    })
+    });
   }
 
   async function handleRegister(event) {
-    event.preventDefault()
-    setError('')
-    setMessage('')
+    event.preventDefault();
+    setError("");
+    setMessage("");
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(registerForm),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Could not register user')
+        throw new Error(data.error || "Could not register user");
       }
 
-      setToken(data.token)
-      localStorage.setItem(TOKEN_KEY, data.token)
-      setUser(data.user)
-      setRegisterForm(emptyRegisterForm)
-      setMessage('Registration successful.')
+      setToken(data.token);
+      localStorage.setItem(TOKEN_KEY, data.token);
+      setUser(data.user);
+      setRegisterForm(emptyRegisterForm);
+      setMessage("Registration successful.");
     } catch (error) {
-      console.log(error)
-      setError(error.message)
+      console.log(error);
+      setError(error.message);
     }
   }
 
   async function handleLogin(event) {
-    event.preventDefault()
-    setError('')
-    setMessage('')
+    event.preventDefault();
+    setError("");
+    setMessage("");
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(loginForm),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Could not log in user')
+        throw new Error(data.error || "Could not log in user");
       }
 
-      setToken(data.token)
-      localStorage.setItem(TOKEN_KEY, data.token)
-      setUser(data.user)
-      setLoginForm(emptyLoginForm)
-      setMessage('Login successful.')
+      setToken(data.token);
+      localStorage.setItem(TOKEN_KEY, data.token);
+      setUser(data.user);
+      setLoginForm(emptyLoginForm);
+      setMessage("Login successful.");
     } catch (error) {
-      console.log(error)
-      setError(error.message)
+      console.log(error);
+      setError(error.message);
     }
   }
 
   function handleLogout() {
-    setToken('')
-    setUser(null)
-    setMessage('Logged out.')
-    setError('')
-    localStorage.removeItem(TOKEN_KEY)
+    setToken("");
+    setUser(null);
+    setMessage("Logged out.");
+    setError("");
+    localStorage.removeItem(TOKEN_KEY);
   }
+
+  const fullName = user ? `${user.first_name} ${user.last_name}` : "";
 
   return (
     <main className="auth-page">
       <section className="auth-hero">
         <p className="eyebrow">Secret Santa Organizer</p>
-        <h1>Build the auth flow for your MVP</h1>
-        <p className="intro">
-          This page lets you register, log in, save your token, and verify that
-          your frontend can talk to your backend.
-        </p>
       </section>
 
       {message ? <p className="message success">{message}</p> : null}
@@ -159,10 +157,10 @@ function App() {
           <h2>Register</h2>
           <form className="auth-form" onSubmit={handleRegister}>
             <label>
-              Username
+              First Name
               <input
-                name="username"
-                value={registerForm.username}
+                name="firstName"
+                value={registerForm.firstName}
                 onChange={handleRegisterChange}
                 type="text"
                 required
@@ -170,7 +168,18 @@ function App() {
             </label>
 
             <label>
-              Email
+              Last Name
+              <input
+                name="lastName"
+                value={registerForm.lastName}
+                onChange={handleRegisterChange}
+                type="text"
+                required
+              />
+            </label>
+
+            <label>
+              Email Address
               <input
                 name="email"
                 value={registerForm.email}
@@ -199,10 +208,10 @@ function App() {
           <h2>Login</h2>
           <form className="auth-form" onSubmit={handleLogin}>
             <label>
-              Email
+              Email Address
               <input
-                name="email"
-                value={loginForm.email}
+                name="username"
+                value={loginForm.username}
                 onChange={handleLoginChange}
                 type="email"
                 required
@@ -229,16 +238,20 @@ function App() {
         <h2>Session</h2>
         {user ? (
           <>
-            <p>You are logged in as <strong>{user.username}</strong>.</p>
+            <p>
+              Welcome, <strong>{fullName}</strong>.
+            </p>
             <p>Email: {user.email}</p>
-            <button onClick={handleLogout} type="button">Log out</button>
+            <button onClick={handleLogout} type="button">
+              Log out
+            </button>
           </>
         ) : (
           <p>No user is currently logged in.</p>
         )}
       </section>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;

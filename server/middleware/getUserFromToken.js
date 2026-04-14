@@ -13,9 +13,10 @@ export default async function getUserFromToken(req, res, next) {
   try {
     const payload = verifyToken(token);
     const result = await db.query(
-      "SELECT id, username, email, created_at FROM users WHERE id = $1;",
-      [payload.id],
+      "SELECT id, first_name, last_name, username, email, created_at FROM users WHERE id = $1;",
+      [payload.id]
     );
+
     req.user = result.rows[0];
     next();
   } catch (error) {

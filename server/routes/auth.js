@@ -9,20 +9,21 @@ const router = express.Router();
 
 router.post("/register", async (req, res, next) => {
   try {
-    const { username, email, password } = req.body || {};
+    const { firstName, lastName, email, password } = req.body || {};
 
-    if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username, email, and password required" });
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({
+        error: "First name, last name, email, and password required"
+      });
     }
 
+    const username = email;
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await db.query(
-      `INSERT INTO users (username, email, password)
-       VALUES ($1, $2, $3)
-       RETURNING id, username, email, created_at;`,
-      [username, email, hashedPassword],
+      `INSERT INTO users (first_name, last_name, username, email, password)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, first_name, last_name, username, email, created_at;`,
+      [firstName, lastName, username, email, hashedPassword]
     );
 
     const user = result.rows[0];
@@ -31,7 +32,7 @@ router.post("/register", async (req, res, next) => {
     res.status(201).json({ token, user });
   } catch (error) {
     if (error.code === "23505") {
-      return res.status(409).json({ error: "Username or email already taken" });
+      return res.status(409).json({ error: "Email already registered" });
     }
 
     next(error);
@@ -40,15 +41,16 @@ router.post("/register", async (req, res, next) => {
 
 router.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = req.body || {};
+    const { username, password } = req.body || {};
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password required" });
     }
 
-    const result = await db.query("SELECT * FROM users WHERE email = $1;", [
-      email,
-    ]);
+    const result = await db.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $1;",
+      [username]
+    );
     const user = result.rows[0];
 
     if (!user) {
@@ -67,10 +69,12 @@ router.post("/login", async (req, res, next) => {
       token,
       user: {
         id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
         username: user.username,
         email: user.email,
-        created_at: user.created_at,
-      },
+        created_at: user.created_at
+      }
     });
   } catch (error) {
     next(error);
