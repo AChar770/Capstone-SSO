@@ -11,10 +11,14 @@ router.post("/register", async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body || {};
 
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !email.includes("@") || !password) {
       return res.status(400).json({
-        error: "First name, last name, email, and password required"
+        error: "First name, last name, email address, and/or password required",
       });
+
+      if (!email.includes("@")) {
+        return res.status(400).json({ error: "Enter a valid email address" });
+      }
     }
 
     const username = email;
@@ -23,7 +27,7 @@ router.post("/register", async (req, res, next) => {
       `INSERT INTO users (first_name, last_name, username, email, password)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, first_name, last_name, username, email, created_at;`,
-      [firstName, lastName, username, email, hashedPassword]
+      [firstName, lastName, username, email, hashedPassword],
     );
 
     const user = result.rows[0];
@@ -41,16 +45,15 @@ router.post("/register", async (req, res, next) => {
 
 router.post("/login", async (req, res, next) => {
   try {
-    const { username, password } = req.body || {};
+    const { email, password } = req.body || {};
 
-    if (!username || !password) {
-      return res.status(400).json({ error: "Username and password required" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password required" });
     }
 
-    const result = await db.query(
-      "SELECT * FROM users WHERE username = $1 OR email = $1;",
-      [username]
-    );
+    const result = await db.query("SELECT * FROM users WHERE email = $1;", [
+      email,
+    ]);
     const user = result.rows[0];
 
     if (!user) {
@@ -73,8 +76,8 @@ router.post("/login", async (req, res, next) => {
         last_name: user.last_name,
         username: user.username,
         email: user.email,
-        created_at: user.created_at
-      }
+        created_at: user.created_at,
+      },
     });
   } catch (error) {
     next(error);

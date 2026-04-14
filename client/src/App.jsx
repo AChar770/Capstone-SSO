@@ -12,7 +12,7 @@ const emptyRegisterForm = {
 };
 
 const emptyLoginForm = {
-  username: "",
+  email: "",
   password: "",
 };
 
@@ -210,8 +210,8 @@ function App() {
             <label>
               Email Address
               <input
-                name="username"
-                value={loginForm.username}
+                name="email"
+                value={loginForm.email}
                 onChange={handleLoginChange}
                 type="email"
                 required
