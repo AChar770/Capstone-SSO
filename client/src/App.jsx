@@ -1,6 +1,50 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+/*
+  RECOMMENDED NEXT REFACTOR (refer to class examples!)
+
+  WHY (Code Style + Documentation): App.jsx currently handles UI rendering, auth state,
+  side effects, and API calls in one file. It works, but splitting responsibilities
+  will make the code easier to read, test, and maintain as features grow.
+
+  1) Add AuthContext + useAuth
+     - Create an AuthProvider to hold shared auth state (user, token, auth errors,
+       success messages, loading flags, and auth actions).
+     - Expose a useAuth hook so components can access login/register/logout behavior
+       without prop drilling.
+     - Suggested files:
+       - src/context/AuthContext.jsx
+       - src/hooks/useAuth.js
+
+  2) Move API logic out of App.jsx
+     - Keep request/response helpers in a dedicated auth API module.
+     - This keeps components focused on rendering and user interaction.
+     - Suggested file:
+       - src/api/authApi.js
+     - Candidate functions to move:
+       - parseResponseBody
+       - postAuthRequest
+       - getCurrentUser
+       - loginUser
+       - registerUser
+
+  3) Split into smaller presentational components
+     - Extract form UI and form-local state into separate components for clarity.
+     - Suggested files:
+       - src/components/RegisterForm.jsx
+       - src/components/LoginForm.jsx
+       - Optional: src/components/AuthMessage.jsx and src/components/SessionCard.jsx
+
+  4) Keep App.jsx as composition/root layout
+     - App should mostly compose sections and consume useAuth.
+     - This improves single responsibility and aligns with modern React patterns used
+       in class.
+
+  Note: This is intentionally marked as recommendation (not required for correctness)
+  so current behavior stays stable while refactor work is done incrementally.
+*/
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const TOKEN_KEY = "secret-santa-token";
 
@@ -16,6 +60,39 @@ const emptyLoginForm = {
   password: "",
 };
 
+async function parseResponseBody(response) {
+  // WHY (Functionality): Some server failures return non-JSON bodies, so a safe parser prevents the UI from crashing during auth error handling.
+  const contentType = response.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const text = await response.text();
+  return text ? { error: text } : {};
+}
+
+async function postAuthRequest(path, payload, fallbackMessage) {
+  // WHY (Code Style): Reusing one helper for register/login keeps auth request logic consistent and easier for beginners to maintain.
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseResponseBody(response);
+
+  if (!response.ok) {
+    const error = new Error(data.error || fallbackMessage);
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
+}
+
 function App() {
   const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
   const [loginForm, setLoginForm] = useState(emptyLoginForm);
@@ -23,11 +100,17 @@ function App() {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchCurrentUser() {
       if (!token) {
-        setUser(null);
+        if (isMounted) {
+          setUser(null);
+        }
         return;
       }
 
@@ -38,23 +121,39 @@ function App() {
           },
         });
 
-        const data = await response.json();
+        const data = await parseResponseBody(response);
 
         if (!response.ok) {
-          throw new Error(data.error || "Could not load user");
+          const requestError = new Error(data.error || "Could not load user");
+          requestError.status = response.status;
+          throw requestError;
         }
 
-        setUser(data);
+        if (isMounted) {
+          setUser(data);
+        }
       } catch (error) {
-        console.log(error);
-        setError(error.message);
-        setUser(null);
-        setToken("");
-        localStorage.removeItem(TOKEN_KEY);
+        if (!isMounted) {
+          return;
+        }
+
+        // WHY (Functionality): Only clear local auth state when the token is truly invalid (401), so temporary API outages do not force a logout.
+        if (error.status === 401) {
+          setUser(null);
+          setToken("");
+          localStorage.removeItem(TOKEN_KEY);
+        }
+
+        setError(error.message || "Could not load user");
       }
     }
 
     fetchCurrentUser();
+
+    return () => {
+      // WHY (Functionality): This marks the component as no longer active, so when an auth request finishes later, we skip state updates and avoid React warning/errors.
+      isMounted = false;
+    };
   }, [token]);
 
   function handleRegisterChange(event) {
@@ -75,21 +174,18 @@ function App() {
     event.preventDefault();
     setError("");
     setMessage("");
+    setIsRegistering(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // WHY (Functionality): Trimming email before submit reduces avoidable register failures caused by accidental spaces.
+      const data = await postAuthRequest(
+        "/api/auth/register",
+        {
+          ...registerForm,
+          email: registerForm.email.trim(),
         },
-        body: JSON.stringify(registerForm),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not register user");
-      }
+        "Could not register user",
+      );
 
       setToken(data.token);
       localStorage.setItem(TOKEN_KEY, data.token);
@@ -97,8 +193,9 @@ function App() {
       setRegisterForm(emptyRegisterForm);
       setMessage("Registration successful.");
     } catch (error) {
-      console.log(error);
-      setError(error.message);
+      setError(error.message || "Could not register user");
+    } finally {
+      setIsRegistering(false);
     }
   }
 
@@ -106,21 +203,18 @@ function App() {
     event.preventDefault();
     setError("");
     setMessage("");
+    setIsLoggingIn(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // WHY (Functionality): Trimming email before submit keeps login resilient for common copy/paste or typing mistakes.
+      const data = await postAuthRequest(
+        "/api/auth/login",
+        {
+          ...loginForm,
+          email: loginForm.email.trim(),
         },
-        body: JSON.stringify(loginForm),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not log in user");
-      }
+        "Could not log in user",
+      );
 
       setToken(data.token);
       localStorage.setItem(TOKEN_KEY, data.token);
@@ -128,8 +222,9 @@ function App() {
       setLoginForm(emptyLoginForm);
       setMessage("Login successful.");
     } catch (error) {
-      console.log(error);
-      setError(error.message);
+      setError(error.message || "Could not log in user");
+    } finally {
+      setIsLoggingIn(false);
     }
   }
 
@@ -149,8 +244,17 @@ function App() {
         <p className="eyebrow">Secret Santa Organizer</p>
       </section>
 
-      {message ? <p className="message success">{message}</p> : null}
-      {error ? <p className="message error">{error}</p> : null}
+      {/* WHY (Documentation): aria-live explains intent and helps users with assistive tech hear auth success/error updates as they happen. */}
+      {message ? (
+        <p className="message success" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="message error" aria-live="assertive">
+          {error}
+        </p>
+      ) : null}
 
       <section className="auth-layout">
         <article className="auth-card">
@@ -200,7 +304,9 @@ function App() {
               />
             </label>
 
-            <button type="submit">Create account</button>
+            <button type="submit" disabled={isRegistering}>
+              {isRegistering ? "Creating account..." : "Create account"}
+            </button>
           </form>
         </article>
 
@@ -229,7 +335,9 @@ function App() {
               />
             </label>
 
-            <button type="submit">Log in</button>
+            <button type="submit" disabled={isLoggingIn}>
+              {isLoggingIn ? "Logging in..." : "Log in"}
+            </button>
           </form>
         </article>
       </section>
