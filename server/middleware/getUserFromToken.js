@@ -9,17 +9,25 @@ export default async function getUserFromToken(req, res, next) {
   }
 
   const token = authorization.split(" ")[1];
+  let payload;
 
   try {
-    const payload = verifyToken(token);
+    // WHY (Functionality): Token verification is handled first so invalid auth is reported clearly as 401 before any database work happens.
+    payload = verifyToken(token);
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  try {
     const result = await db.query(
       "SELECT id, first_name, last_name, username, email, created_at FROM users WHERE id = $1;",
-      [payload.id]
+      [payload.id],
     );
 
     req.user = result.rows[0];
     next();
   } catch (error) {
-    res.status(401).json({ error: "Invalid token" });
+    // WHY (Functionality): Passing database errors to Express error handling avoids masking server problems as token problems.
+    next(error);
   }
 }

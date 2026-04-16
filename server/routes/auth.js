@@ -6,28 +6,38 @@ import getUserFromToken from "../middleware/getUserFromToken.js";
 import requireUser from "../middleware/requireUser.js";
 
 const router = express.Router();
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeEmail(email) {
+  // WHY (Functionality): Normalizing email input makes login/register behavior reliable for normal user input like extra spaces or uppercase letters.
+  return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
 
 router.post("/register", async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body || {};
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!firstName || !lastName || !email.includes("@") || !password) {
+    // WHY (Functionality): Separate required-field checks from email-format checks so the route never crashes on missing email and returns clear feedback.
+    if (!firstName || !lastName || !password || !normalizedEmail) {
       return res.status(400).json({
-        error: "First name, last name, email address, and/or password required",
+        error:
+          "First name, last name, email address, and password are required",
       });
-
-      if (!email.includes("@")) {
-        return res.status(400).json({ error: "Enter a valid email address" });
-      }
     }
 
-    const username = email;
+    // WHY (Functionality): Explicit format validation protects the main register flow from invalid data before database writes.
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ error: "Enter a valid email address" });
+    }
+
+    const username = normalizedEmail;
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await db.query(
       `INSERT INTO users (first_name, last_name, username, email, password)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, first_name, last_name, username, email, created_at;`,
-      [firstName, lastName, username, email, hashedPassword],
+      [firstName, lastName, username, normalizedEmail, hashedPassword],
     );
 
     const user = result.rows[0];
@@ -46,14 +56,20 @@ router.post("/register", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    // WHY (Functionality): Matching login input normalization to register input prevents valid users from being blocked by casing/spacing differences.
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }
 
-    const result = await db.query("SELECT * FROM users WHERE email = $1;", [
-      email,
-    ]);
+    // WHY (Code Style): Selecting only needed columns keeps auth queries easier to read and avoids carrying extra data through the route.
+    const result = await db.query(
+      `SELECT id, first_name, last_name, username, email, password, created_at
+       FROM users
+       WHERE email = $1;`,
+      [normalizedEmail],
+    );
     const user = result.rows[0];
 
     if (!user) {
