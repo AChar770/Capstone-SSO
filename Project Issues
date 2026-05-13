@@ -74,3 +74,541 @@
     test full user flow
     fix major bugs
     deploy app
+
+
+TO DO's not MVP Priotized
+
+. Set up project repo and folder structure
+Description:
+Create the initial project structure for the Secret Santa Organizer app.
+Tasks:
+ create GitHub repository
+ set up client folder
+ set up server folder
+ install dependencies
+ create initial README
+ make first commit
+Labels: setup mvp
+2. Set up Express server
+Description:
+Create the backend server and confirm basic routing works.
+Tasks:
+ create Express app
+ add middleware
+ create root test route
+ set up server listening port
+ test server in browser or Postman
+Labels: backend mvp
+3. Set up PostgreSQL database and schema
+Description:
+Create the database and prepare the schema file for all app tables.
+Tasks:
+ create database
+ create schema.sql
+ connect database to server
+ test database connection
+ make initial schema commit
+Labels: database mvp
+4. Create users table
+Description:
+Build the users table to store account information.
+Tasks:
+ add id column
+ add username column
+ add email column
+ add password column
+ add created_at column
+ test table creation
+Labels: database mvp
+5. Create events table
+Description:
+Build the events table to store Secret Santa event details.
+Tasks:
+ add id column
+ add organizer_id foreign key
+ add title column
+ add description column
+ add event_date column
+ add budget column
+ test table creation
+Labels: database mvp
+6. Create participants table
+Description:
+Build the participants table to connect users to events.
+Tasks:
+ add id column
+ add event_id foreign key
+ add user_id foreign key or nullable field if needed
+ add display_name column
+ add joined_at column
+ test relationship with events table
+Labels: database mvp
+7. Create exclusions table
+Description:
+Build the exclusions table to store participant pairs that cannot be matched.
+Tasks:
+ add id column
+ add event_id foreign key
+ add giver_participant_id foreign key
+ add receiver_participant_id foreign key
+ test table creation
+Labels: database mvp
+8. Create assignments table
+Description:
+Build the assignments table to save Secret Santa match results.
+Tasks:
+ add id column
+ add event_id foreign key
+ add giver_participant_id foreign key
+ add receiver_participant_id foreign key
+ add created_at column
+ test table creation
+Labels: database mvp
+9. Create wishlist_items table
+Description:
+Build the wishlist_items table for participant gift ideas.
+Tasks:
+ add id column
+ add participant_id foreign key
+ add item_name column
+ add notes column
+ add store_name column
+ add product_url column
+ add price column
+ test table creation
+Labels: database mvp
+10. Build user registration route
+Description:
+Create the backend route for new user registration.
+Tasks:
+ create POST /api/auth/register
+ validate required fields
+ hash password with bcrypt
+ insert new user into users table
+ return user or token
+ test in Postman
+Labels: backend auth mvp
+11. Build user login route
+Description:
+Create the backend route for user login.
+Tasks:
+ create POST /api/auth/login
+ find user by email
+ compare password with bcrypt
+ generate JWT
+ return token
+ test success and error cases
+Labels: backend auth mvp
+12. Build auth middleware
+Description:
+Create middleware to verify JWT and attach the current user to requests.
+Tasks:
+ read Authorization header
+ verify token
+ find user from token payload
+ attach user to req
+ handle invalid token errors
+Labels: backend auth mvp
+13. Build current user route
+Description:
+Create a route to return the currently logged-in user.
+Tasks:
+ create GET /api/auth/me
+ protect route with auth middleware
+ return current user data
+ test with valid and invalid token
+Labels: backend auth mvp
+14. Build register page
+Description:
+Create the frontend form for new users to register.
+Tasks:
+ create register component
+ add username input
+ add email input
+ add password input
+ submit form to backend
+ handle errors
+ redirect after success
+Labels: frontend auth mvp
+15. Build login page
+Description:
+Create the frontend form for users to log in.
+Tasks:
+ create login component
+ add email input
+ add password input
+ submit form to backend
+ save token
+ redirect to dashboard
+ handle errors
+Labels: frontend auth mvp
+16. Build authenticated navigation
+Description:
+Show different navbar links depending on whether the user is logged in.
+Tasks:
+ create navbar component
+ show login/register for logged-out users
+ show dashboard/logout for logged-in users
+ add logout functionality
+Labels: frontend mvp
+17. Build create event route
+Description:
+Allow logged-in users to create a Secret Santa event.
+Tasks:
+ create POST /api/events
+ protect route
+ validate title and required fields
+ insert event into events table
+ return created event
+ test in Postman
+Labels: backend events mvp
+18. Build get user events route
+Description:
+Return all events created by the logged-in user.
+Tasks:
+ create GET /api/events
+ protect route
+ query events by organizer_id
+ return event list
+ test route
+Labels: backend events mvp
+19. Build single event route
+Description:
+Return details for one specific event.
+Tasks:
+ create GET /api/events/:id
+ protect route
+ query selected event
+ confirm ownership or access
+ return event data
+Labels: backend events mvp
+20. Build create event page
+Description:
+Create the frontend form for making a new Secret Santa event.
+Tasks:
+ build create event component
+ add title field
+ add description field
+ add event date field
+ add budget field
+ submit to backend
+ redirect on success
+Labels: frontend events mvp
+21. Build dashboard page
+Description:
+Show the logged-in user’s Secret Santa events.
+Tasks:
+ fetch user events
+ render event cards
+ add create event button
+ link each card to event details page
+ style dashboard layout
+Labels: frontend events mvp
+22. Build add participant route
+Description:
+Allow the organizer to add participants to an event.
+Tasks:
+ create POST /api/events/:id/participants
+ protect route
+ validate participant input
+ insert into participants table
+ return updated participant data
+ test route
+Labels: backend participants mvp
+23. Build get participants route
+Description:
+Return all participants for a selected event.
+Tasks:
+ create GET /api/events/:id/participants
+ protect route
+ query participants table
+ return participant list
+ test route
+Labels: backend participants mvp
+24. Build delete participant route
+Description:
+Allow the organizer to remove a participant from an event.
+Tasks:
+ create DELETE /api/participants/:participantId
+ protect route
+ validate organizer ownership
+ delete participant
+ test route
+Labels: backend participants mvp
+25. Build participant management UI
+Description:
+Create the frontend interface for adding and viewing participants.
+Tasks:
+ build participant list section
+ build add participant form
+ connect form to backend
+ add delete participant button
+ refresh participant list after changes
+Labels: frontend participants mvp
+26. Build add exclusion route
+Description:
+Allow the organizer to create exclusion rules between participants.
+Tasks:
+ create POST /api/events/:id/exclusions
+ protect route
+ validate participant ids
+ save exclusion pair
+ prevent duplicate exclusions
+ test route
+Labels: backend exclusions mvp
+27. Build get exclusions route
+Description:
+Return all exclusion rules for an event.
+Tasks:
+ create GET /api/events/:id/exclusions
+ protect route
+ query exclusions table
+ return exclusions list
+ test route
+Labels: backend exclusions mvp
+28. Build delete exclusion route
+Description:
+Allow the organizer to remove an exclusion rule.
+Tasks:
+ create DELETE /api/exclusions/:id
+ protect route
+ delete exclusion
+ test route
+Labels: backend exclusions mvp
+29. Build exclusions UI
+Description:
+Create the frontend interface for managing exclusions.
+Tasks:
+ build exclusion form
+ allow organizer to select two participants
+ show current exclusions
+ add delete exclusion button
+ refresh data after updates
+Labels: frontend exclusions mvp
+30. Build Secret Santa matching algorithm
+Description:
+Create the logic that assigns each participant a recipient while respecting exclusions.
+Tasks:
+ prevent self-matching
+ respect exclusion rules
+ ensure every participant gets exactly one recipient
+ handle failed assignment attempts
+ test with multiple participant sets
+Labels: backend logic mvp
+31. Build generate assignments route
+Description:
+Create a backend route that runs the matching algorithm and saves results.
+Tasks:
+ create POST /api/events/:id/assignments/generate
+ protect route
+ fetch participants and exclusions
+ run matching algorithm
+ save assignments to database
+ return results
+ test route
+Labels: backend assignments mvp
+32. Build organizer assignments view
+Description:
+Allow the organizer to view all Secret Santa match results.
+Tasks:
+ create GET /api/events/:id/assignments
+ protect route
+ query assignment data
+ join giver and receiver participant names
+ return organizer-friendly results
+Labels: backend assignments mvp
+33. Build private participant assignment route
+Description:
+Allow a participant to view only their own assigned recipient.
+Tasks:
+ create GET /api/events/:id/my-assignment
+ protect route
+ identify current participant
+ return only that participant’s assignment
+ test privacy rules
+Labels: backend assignments mvp
+34. Build event details page
+Description:
+Create the main organizer page for managing one event.
+Tasks:
+ fetch event details
+ show event summary
+ show participants section
+ show exclusions section
+ add generate matches button
+ display organizer assignment results
+Labels: frontend events mvp
+35. Build my assignment page
+Description:
+Create the frontend page where a participant sees their assigned recipient.
+Tasks:
+ fetch current participant assignment
+ display recipient name
+ display recipient wishlist preview
+ handle empty state if no match exists yet
+Labels: frontend assignments mvp
+36. Build add wishlist item route
+Description:
+Allow participants to add gift ideas to their wishlist.
+Tasks:
+ create POST /api/participants/:participantId/wishlist
+ protect route
+ validate input
+ insert wishlist item into database
+ test route
+Labels: backend wishlist mvp
+37. Build get wishlist route
+Description:
+Return all wishlist items for a participant.
+Tasks:
+ create GET /api/participants/:participantId/wishlist
+ protect route
+ query wishlist_items table
+ return wishlist items
+ test route
+Labels: backend wishlist mvp
+38. Build update wishlist item route
+Description:
+Allow participants to edit a wishlist item.
+Tasks:
+ create PUT /api/wishlist/:id
+ protect route
+ validate ownership
+ update wishlist item
+ test route
+Labels: backend wishlist mvp
+39. Build delete wishlist item route
+Description:
+Allow participants to remove a wishlist item.
+Tasks:
+ create DELETE /api/wishlist/:id
+ protect route
+ validate ownership
+ delete wishlist item
+ test route
+Labels: backend wishlist mvp
+40. Build wishlist page
+Description:
+Create the frontend page for adding and viewing wishlist items.
+Tasks:
+ build add wishlist form
+ include item name field
+ include notes field
+ include store name field
+ include product URL field
+ include price field
+ render saved wishlist items
+ add edit and delete buttons
+Labels: frontend wishlist mvp
+41. Add external retailer links to wishlist cards
+Description:
+Allow users to click out to retailer product pages from wishlist items.
+Tasks:
+ render product URL as clickable link
+ label card with store name
+ open link safely in new tab
+ test with Amazon, Target, and Macy’s links
+Labels: frontend wishlist mvp
+42. Protect private frontend routes
+Description:
+Prevent logged-out users from accessing private pages.
+Tasks:
+ protect dashboard route
+ protect create event route
+ protect event details route
+ protect wishlist route
+ protect my assignment route
+Labels: frontend auth mvp
+43. Style core app pages
+Description:
+Add consistent styling to the main pages so the app looks polished.
+Tasks:
+ style navbar
+ style forms
+ style dashboard cards
+ style event page
+ style wishlist cards
+ improve spacing and typography
+Labels: frontend ui mvp
+44. Add mobile responsiveness
+Description:
+Make the core app usable on mobile screens.
+Tasks:
+ test landing page on mobile
+ test dashboard on mobile
+ test forms on mobile
+ test event details page on mobile
+ adjust layout as needed
+Labels: frontend ui mvp
+45. Test API routes in Postman
+Description:
+Test all backend endpoints for success and error cases.
+Tasks:
+ test auth routes
+ test event routes
+ test participant routes
+ test exclusion routes
+ test assignment routes
+ test wishlist routes
+Labels: testing mvp
+46. Fix bugs and edge cases
+Description:
+Review the full app and resolve known issues before deployment.
+Tasks:
+ fix form errors
+ fix broken route handling
+ fix auth edge cases
+ fix assignment edge cases
+ test empty states
+Labels: bug mvp
+47. Deploy application
+Description:
+Deploy the frontend and backend so the project is live.
+Tasks:
+ choose deployment platform
+ set environment variables
+ deploy database
+ deploy backend
+ deploy frontend
+ test deployed app
+
+
+
+
+
+
+
+Code Review
+Aim to have at least one core featured implemented and pushed to GitHub. Instructors will give written feedback on your code, so make sure your main branch is clean and presentable!
+
+Code Guidelines
+Here are some useful tips and suggestions for proofreading and editing your code.
+
+Functionality
+Make sure the core feature is (mostly) working. Don't worry about edge cases.
+The code in the main branch works on multiple machines.
+Code Style
+Delete unused variables, imports, logs, etc.
+Delete reference code, such as TODO comments or template files.
+Consistently format each file.
+Follow consistent naming conventions, such as:
+PascalCase for React components and files
+camelCase for variables and function names
+nouns for variable names
+verbs for function names
+Spell check your files and fix any typos.
+Use meaningful and descriptive names for your variables and functions.
+Avoid abbreviations and prefer explicitly spelling words out.
+Abstract shared logic into separate functions and files instead of repeating code.
+Documentation
+Comments should be at a higher level than the code itself. Avoid repeating code.
+Prefer code that is self-documenting over comments (e.g. descriptive variable names).
+If you got code from an outside source, credit the source in a comment.
+Document all components and functions - 1-2 sentence descriptions are plenty.
+Write a thorough README file that includes information such as
+overview with a description, problem statement, goals, screenshots, etc
+core distinguishing features of the project
+tech stack: technologies, tools, and frameworks used
+architecture overview: folder structure, system design, etc
+Submission
+Please submit the links to your frontend and backend repositories.

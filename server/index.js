@@ -3,12 +3,24 @@ import cors from "cors";
 import express from "express";
 import authRouter from "./routes/auth.js";
 import eventsRouter from "./routes/events.js";
+import participantsRouter from "./routes/participants.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CORS_ORIGIN,
+].filter(Boolean);
+
 app.use(
-  cors();
+  cors({
+    origin: (origin, callback) =>
+      !origin || allowedOrigins.includes(origin)
+        ? callback(null, true)
+        : callback(new Error("Not allowed by CORS")),
+  }),
 );
 
 app.use(express.json());
@@ -28,3 +40,5 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+
+app.use("/api", participantsRouter);

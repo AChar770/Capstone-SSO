@@ -107,3 +107,20 @@ a little something something to check on form functionality
     padding: 32px 16px 48px;
   }
 }
+
+.event-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.event-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f8fbff;
+}
+
+.event-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
